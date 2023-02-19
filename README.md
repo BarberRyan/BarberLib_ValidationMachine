@@ -1,1 +1,1 @@
-# BarberLib_ValidationMachine
+# ValidationMachine by Ryan Barber
