@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace ValidationMachine
+﻿namespace ValidationMachine
 {
     public enum VM_Type
     {
@@ -16,6 +10,8 @@ namespace ValidationMachine
         Alpha_Num,
         //Is text equal to input?
         Equal,
+        //Does text contain a specified string?
+        Contains,
         //Does text contain special chars?
         Spec_Char,
         //Is text above the minimum length?

@@ -1,17 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-
-namespace ValidationMachine
-{    
+﻿namespace ValidationMachine
+{
     public class VM_Factory
     {
         public Dictionary<Control, VMachine> VMachines = new Dictionary<Control, VMachine>();
-
+        
+        /// <summary>
+        /// Adds empty machine to avoid null object issues
+        /// </summary>
+        /// <param name="target">control to target</param>
         private void AddMachine(Control target)
         {
             VMachine newMachine = new VMachine(target);
@@ -19,6 +15,12 @@ namespace ValidationMachine
             VMachines.Add(target, newMachine);
         }
 
+        /// <summary>
+        /// Adds a validator to the machine
+        /// </summary>
+        /// <param name="target">control to target</param>
+        /// <param name="validator">Type of validation required</param>
+        /// <param name="args">Optional arguments (see VMachine for parameter requirements)</param>
         public void AddValidator(Control target, VM_Type validator, params Object[] args)
         {
             if(VMachines == null)
@@ -36,6 +38,13 @@ namespace ValidationMachine
             }
         }
 
+        /// <summary>
+        /// Creates a feedback event triggered by validation
+        /// </summary>
+        /// <param name="target">control to target</param>
+        /// <param name="status">status that triggers the event</param>
+        /// <param name="feedback">method name or lambda expression to trigger</param>
+        /// <param name="feedbackCase">set to false to trigger event when status is not present</param>
         public void AddFeedback(Control target, VM_Status status, Action feedback, bool feedbackCase = true)
         {
             if (VMachines.ContainsKey(target))
@@ -44,7 +53,12 @@ namespace ValidationMachine
             }
         }
 
-        public List<(Control, List<VM_Status>)> ValidateAll(bool feedback = false)
+        /// <summary>
+        /// Validates all validators
+        /// </summary>
+        /// <param name="feedback">should feedback actions trigger?</param>
+        /// <returns></returns>
+        public List<(Control, List<VM_Status>)> ValidateAll(bool feedback = true)
         {
             List<(Control, List<VM_Status>)> output = new List<(Control, List<VM_Status>)>();
 

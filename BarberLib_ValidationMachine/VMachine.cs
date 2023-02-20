@@ -1,12 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http.Headers;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-using System.Windows.Forms;
+﻿using System.Text.RegularExpressions;
 
 namespace ValidationMachine
 {
@@ -24,13 +16,20 @@ namespace ValidationMachine
             Target = control;
         }
 
-
+        /// <summary>
+        /// Adds a validator to the machine
+        /// </summary>
+        /// <param name="validator">Validator type to add</param>
+        /// <param name="arguments">optional arguments (see "Validate" method for requirements)</param>
         public void Add(VM_Type validator, params Object[] arguments)
         {
                 Validators ??= new Dictionary<VM_Type, Object[]>();
                 Validators.Add(validator, arguments);
         }
 
+        /// <summary>
+        /// Test if target.Text is only letters
+        /// </summary>
         private void AlphaTest()
         {
             Regex regex = new("^[a-zA-Z]*$");
@@ -40,6 +39,9 @@ namespace ValidationMachine
             }
         }
 
+        /// <summary>
+        /// Test if target.Text is only numbers
+        /// </summary>
         private void NumTest()
         {
             Regex regex = new("^[0-9]*$");
@@ -49,6 +51,9 @@ namespace ValidationMachine
             }
         }
 
+        /// <summary>
+        /// Test if target.Text is only letters and numbers
+        /// </summary>
         private void AlphaNumTest()
         {
             Regex regex = new("^[a-zA-Z0-9]*$");
@@ -58,6 +63,10 @@ namespace ValidationMachine
             }
         }
 
+        /// <summary>
+        /// Tests if target.Text is equal to supplied string
+        /// </summary>
+        /// <param name="test">string to compare</param>
         private void EqualTest(string test)
         {
             if(Target.Text != test)
@@ -66,6 +75,21 @@ namespace ValidationMachine
             }
         }
 
+        /// <summary>
+        /// Tests if target.Text contains a specified string
+        /// </summary>
+        /// <param name="test">string to check for</param>
+        private void ContainsTest(string test)
+        {
+            if (!Target.Text.Contains(test))
+            {
+                Statuses.Add(VM_Status.Not_Contains);
+            }
+        }
+
+        /// <summary>
+        /// Tests if target.Text contains at least 1 special character
+        /// </summary>
         private void SpecCharTest()
         {
             Regex regex = new (@"[!@#$%^&*()_+\-=[\]{};':""\\|,.<>/?]");
@@ -75,6 +99,10 @@ namespace ValidationMachine
             }
         }
 
+        /// <summary>
+        /// Tests if target.Text meets a minimum length
+        /// </summary>
+        /// <param name="min">minimum character length</param>
         private void MinLenTest(int min)
         {
             if(Target.Text.Length < min)
@@ -83,6 +111,10 @@ namespace ValidationMachine
             }
         }
 
+        /// <summary>
+        /// Tests if target.Text is at or below a maximum length
+        /// </summary>
+        /// <param name="max">maximum character length</param>
         private void MaxLenTest(int max)
         {
             if (Target.Text.Length > max)
@@ -90,7 +122,11 @@ namespace ValidationMachine
                 Statuses.Add(VM_Status.Too_Long);
             }
         }
-
+        
+        /// <summary>
+        /// Tests if target.Text contains any characters specified as invalid (or defaults to special characters)
+        /// </summary>
+        /// <param name="chars">optional list of characters to check for</param>
         private void InvCharTest(List<char>? chars = null)
         {
             if(chars == null || chars.Count == 0)
@@ -114,6 +150,10 @@ namespace ValidationMachine
             
         }
 
+        /// <summary>
+        /// Tests if target.Text matches a regular expression
+        /// </summary>
+        /// <param name="regex">Regex to check against</param>
         private void RegExTest(Regex regex)
         {
             if (!regex.IsMatch(Target.Text))
@@ -122,6 +162,10 @@ namespace ValidationMachine
             }
         }
 
+        /// <summary>
+        /// Tests if a specified function returns true
+        /// </summary>
+        /// <param name="func">method or lambda expression to test</param>
         private void FuncTest(Func<bool> func)
         {
             if (!func())
@@ -130,6 +174,10 @@ namespace ValidationMachine
             }
         }
 
+        /// <summary>
+        /// Tests if a specified function returns true (override with a function that takes a string parameter)
+        /// </summary>
+        /// <param name="func">method or lambda expression to test</param>
         private void FuncTest(Func<string, bool> func)
         {
             if (!func(Target.Text))
@@ -138,11 +186,21 @@ namespace ValidationMachine
             }
         }
 
+        /// <summary>
+        /// Adds a feedback action to the machine
+        /// </summary>
+        /// <param name="status">VM_Status that triggers feedback</param>
+        /// <param name="feedback">action to trigger</param>
+        /// <param name="feedbackCase">set to false to trigger feedback when the provided status is not returned</param>
         public void AddFeedback(VM_Status status, Action feedback, bool feedbackCase = true)
         {
             FeedbackActions.Add((status, feedbackCase), feedback);
         }
 
+        /// <summary>
+        /// Trigger feedback actions
+        /// </summary>
+        /// <returns>VM_Status list returned from Validate method</returns>
         public List<VM_Status> Feedback()
         {
             List<VM_Status> output = Validate();
@@ -167,6 +225,10 @@ namespace ValidationMachine
             return output;
         }
 
+        /// <summary>
+        /// Checks all provided validators and returns list of status codes (a return of just VM_Status.OK means validation has passed)
+        /// </summary>
+        /// <returns>VM_Status list built by each validator function provided</returns>
         public List<VM_Status> Validate()
         {
             Statuses.Clear();
@@ -187,13 +249,24 @@ namespace ValidationMachine
                         break;
 
                     case VM_Type.Equal:
-                        if (validator.Value != null && validator.Value[0] is string test)
+                        if (validator.Value != null && validator.Value[0] is string equal)
                         {
-                            EqualTest(test);
+                            EqualTest(equal);
                         }
                         else
                         {
                             Statuses.Add(VM_Status.Bad_Equal_Args);
+                        }
+                        break;
+
+                    case VM_Type.Contains:
+                        if (validator.Value != null && validator.Value[0] is string contains)
+                        {
+                            ContainsTest(contains);
+                        }
+                        else
+                        {
+                            Statuses.Add(VM_Status.Bad_Contains_Args);
                         }
                         break;
 
